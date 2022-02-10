@@ -3,41 +3,42 @@ using UnityEngine.Tilemaps;
 
 public class Board : MonoBehaviour
 {
-    public Tilemap tilemap { get; private set; }
-    public Piece activePiece { get; private set; }
-    public TetrominoData[] tetrominoes;
-    public Vector3Int spawnPosition;
+    private Tilemap tilemap;
+    [SerializeField]
+    private Tetromino[] tetrominoes;
+    private TetrisPiece activePiece;
+    private Vector3Int spawnPosition = new Vector3Int(-1, 8, 0);
 
     private void Awake()
     {
         this.tilemap = GetComponentInChildren<Tilemap>();
-        this.activePiece = GetComponentInChildren<Piece>();
-        for (int i = 0; i< this.tetrominoes.Length; i++)
+        foreach (var tetromino in tetrominoes)
         {
-            this.tetrominoes[i].Initialize();
+            tetromino.SetTakingCoordinate();
         }
+
     }
 
     private void Start()
     {
-        SpawnPiece();
+        SpawnActivePiece();
     }
 
-    public void SpawnPiece()
+    public void SpawnActivePiece()
     {
-        int random = Random.Range(0, this.tetrominoes.Length);
-        TetrominoData data = this.tetrominoes[random];
+        int randomIndex = Random.Range(0, tetrominoes.Length);
+        activePiece = new TetrisPiece(tetrominoes[randomIndex]);
 
-        this.activePiece.Initialize(this, this.spawnPosition, data);
-        Set(this.activePiece);
+        SetPieceTile(activePiece);
     }
 
-    public void Set(Piece piece)
+    public void SetPieceTile(TetrisPiece activePiece)
     {
-        for (int i =0;i<piece.cells.Length; i++)
+        Vector2Int[] takingCoordinates = activePiece.tetromino.takingCoordinate;
+        for (int i = 0; i < takingCoordinates.Length; i++)
         {
-            Vector3Int tilePosition = piece.cells[i] + piece.position;
-            this.tilemap.SetTile(tilePosition, piece.data.tile);
+            Vector3Int tilePosition = (Vector3Int)takingCoordinates[i] + activePiece.position;
+            tilemap.SetTile(tilePosition, activePiece.tetromino.tile);
         }
     }
 }

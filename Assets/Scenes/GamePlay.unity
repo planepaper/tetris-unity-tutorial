@@ -133,7 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 50999521}
   - component: {fileID: 50999520}
-  - component: {fileID: 50999522}
+  - component: {fileID: 50999524}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -168,7 +168,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &50999522
+--- !u!114 &50999524
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -180,6 +180,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6df903471a39f5e449f656b8e1f50211, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tetrominoes:
+  - pieceAlphabet: 0
+    tile: {fileID: 11400000, guid: fa4a781e6551be549b018f8b8c57c997, type: 2}
+  - pieceAlphabet: 1
+    tile: {fileID: 11400000, guid: a7c6b9a61779e4648aa64e7de4f7f66c, type: 2}
+  - pieceAlphabet: 2
+    tile: {fileID: 11400000, guid: 976c8f72e49bd3e428e282761cae466a, type: 2}
+  - pieceAlphabet: 3
+    tile: {fileID: 11400000, guid: 7ab250557aa91e342960591f3814f970, type: 2}
+  - pieceAlphabet: 4
+    tile: {fileID: 11400000, guid: ce62cb8d00c8cf74f858859d0d07a264, type: 2}
+  - pieceAlphabet: 5
+    tile: {fileID: 11400000, guid: e3061ada8b4db6647bbd7fb2a899dd70, type: 2}
+  - pieceAlphabet: 6
+    tile: {fileID: 11400000, guid: 1eb9ff4d96d98e04da9d4ebd2222b8e0, type: 2}
 --- !u!1 &186309690
 GameObject:
   m_ObjectHideFlags: 0

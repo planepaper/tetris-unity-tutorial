@@ -37,28 +37,28 @@ public class Board : MonoBehaviour
     {
         ClearPieceTile(activePiece);
 
-        Vector2Int direction = Vector2Int.zero;
+        Vector3Int newPosition = activePiece.position;
         if (Input.GetKeyDown(KeyCode.A))
         {
-            direction = Vector2Int.left;
+            newPosition += Vector3Int.left;
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            direction = Vector2Int.right;
+            newPosition += Vector3Int.right;
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
-            direction = Vector2Int.down;
+            newPosition += Vector3Int.down;
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            newPosition = GetHardDropPosition();
         }
         else
         {
         }
 
-        Vector3Int newPosition = activePiece.position;
-        newPosition.x += direction.x;
-        newPosition.y += direction.y;
-
-        if (IsValidPosition((Vector3Int)newPosition))
+        if (IsValidPosition(newPosition))
         {
             activePiece.Move(newPosition);
         }
@@ -92,19 +92,18 @@ public class Board : MonoBehaviour
         }
     }
 
-    //TODO: HARDDROP
-    // private Vector3Int HardDrop()
-    // {
-    //     Vector3Int newPosition = activePiece.position;
-    //     while (IsValidPosition(newPosition))
-    //     {
-    //         newPosition.x += Vector2Int.down.x;
-    //         newPosition.y += Vector2Int.down.y;
-    //     }
+    private Vector3Int GetHardDropPosition()
+    {
+        Vector3Int newPosition = activePiece.position;
+        while (IsValidPosition(newPosition))
+        {
+            newPosition += Vector3Int.down;
+        }
 
+        newPosition += Vector3Int.up;
 
-    //     activePiece.Move(newPosition);
-    // }
+        return newPosition;
+    }
 
     public bool IsValidPosition(Vector3Int position)
     {

@@ -1,6 +1,12 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+public enum RotateDirection
+{
+    Right = 1,
+    Left = -1,
+}
+
 public class Board : MonoBehaviour
 {
     private Tilemap tilemap;
@@ -24,7 +30,9 @@ public class Board : MonoBehaviour
         this.tilemap = GetComponentInChildren<Tilemap>();
         foreach (var tetromino in tetrominoes)
         {
-            tetromino.SetTakingCoordinate();
+            //TODO: Have to change this Logic
+            //Change inserting method of tiles from unity-editor to in-code.
+            tetromino.InitializeShapeCells();
         }
     }
 
@@ -54,6 +62,14 @@ public class Board : MonoBehaviour
         {
             newPosition = GetHardDropPosition();
         }
+        else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            RotateActivePiece(RotateDirection.Left);
+        }
+        else if (Input.GetKeyDown(KeyCode.E))
+        {
+            RotateActivePiece(RotateDirection.Right);
+        }
         else
         {
         }
@@ -76,18 +92,18 @@ public class Board : MonoBehaviour
 
     public void SetPieceTile()
     {
-        foreach (var takingCoordinate in activePiece.tetromino.takingCoordinates)
+        foreach (var takingCell in activePiece.TakingCells)
         {
-            Vector3Int tilePosition = (Vector3Int)takingCoordinate + activePiece.position;
+            Vector3Int tilePosition = (Vector3Int)takingCell + activePiece.position;
             tilemap.SetTile(tilePosition, activePiece.tetromino.tile);
         }
     }
 
     public void ClearPieceTile(TetrisPiece piece)
     {
-        foreach (var takingCoordinate in activePiece.tetromino.takingCoordinates)
+        foreach (var takingCells in activePiece.TakingCells)
         {
-            Vector3Int tilePosition = (Vector3Int)takingCoordinate + activePiece.position;
+            Vector3Int tilePosition = (Vector3Int)takingCells + activePiece.position;
             tilemap.SetTile(tilePosition, null);
         }
     }
@@ -109,9 +125,9 @@ public class Board : MonoBehaviour
     {
         RectInt offset = OffSet;
 
-        foreach (var takingCoordinate in activePiece.tetromino.takingCoordinates)
+        foreach (var takingCells in activePiece.TakingCells)
         {
-            Vector3Int tilePosition = (Vector3Int)takingCoordinate + position;
+            Vector3Int tilePosition = (Vector3Int)takingCells + position;
 
             if (!offset.Contains((Vector2Int)tilePosition))
             {
@@ -125,5 +141,21 @@ public class Board : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void RotateActivePiece(RotateDirection direction)
+    {
+        float[,] rotateMatrix = new float[,] { { 0, (-1) * (int)direction }, { 1 * (int)direction, 0 } };
+
+        Vector2Int[] curCell = activePiece.TakingCells;
+        Vector2Int[] rotatedCells = new Vector2Int[curCell.Length];
+
+        for (int i = 0; i < rotatedCells.Length; i++)
+        {
+            rotatedCells[i].x = Mathf.RoundToInt((rotateMatrix[0, 0] * curCell[i].x) + (rotateMatrix[0, 1] * curCell[i].y));
+            rotatedCells[i].y = Mathf.RoundToInt((rotateMatrix[1, 0] * curCell[i].x) + (rotateMatrix[1, 1] * curCell[i].y));
+        }
+
+        activePiece.RotateShape(rotatedCells);
     }
 }

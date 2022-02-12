@@ -3,10 +3,6 @@ using UnityEngine;
 
 public static class Data
 {
-    public static readonly float COS = Mathf.Cos(Mathf.PI / 2f);
-    public static readonly float SIN = Mathf.Sin(Mathf.PI / 2f);
-    public static readonly float[] ROTATION_MATRIX = { COS, SIN, -SIN, COS };
-
     public static readonly Dictionary<PieceAlphabet, Vector2Int[]> Cells = new Dictionary<PieceAlphabet, Vector2Int[]>()
     {
         { PieceAlphabet.I, new Vector2Int[] { new Vector2Int(-1, 1), new Vector2Int( 0, 1), new Vector2Int( 1, 1), new Vector2Int( 2, 1) } },

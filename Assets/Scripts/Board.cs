@@ -145,7 +145,7 @@ public class Board : MonoBehaviour
 
     private void RotateActivePiece(RotateDirection direction)
     {
-        float[,] rotateMatrix = new float[,] { { 0, (-1) * (int)direction }, { 1 * (int)direction, 0 } };
+        float[,] rotateMatrix = new float[,] { { 0, 1 * (int)direction }, { -1 * (int)direction, 0 } };
 
         Vector2Int[] curCell = activePiece.TakingCells;
         Vector2Int[] rotatedCells = new Vector2Int[curCell.Length];

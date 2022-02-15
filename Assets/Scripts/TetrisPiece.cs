@@ -17,7 +17,11 @@ public enum PieceAlphabet
 public class Tetromino
 {
     [SerializeField]
-    private PieceAlphabet pieceAlphabet;
+    private PieceAlphabet _pieceAlphabet;
+    public PieceAlphabet PieceAlphabet
+    {
+        get => _pieceAlphabet;
+    }
     public Tile tile;
     private Vector2Int[] _shapeCells;
     public Vector2Int[] ShapeCells
@@ -34,7 +38,7 @@ public class Tetromino
     }
     public void InitializeShapeCells()
     {
-        _shapeCells = Data.Cells[pieceAlphabet];
+        _shapeCells = Data.Cells[_pieceAlphabet];
     }
 }
 
@@ -43,6 +47,12 @@ public class TetrisPiece
     [SerializeField]
     public Tetromino tetromino { get; private set; }
     public Vector3Int position { get; private set; }
+    private int _RotationIndex;
+    public int RotationIndex
+    {
+        get => _RotationIndex;
+        set => _RotationIndex = value % 4;
+    }
     private Vector2Int[] _takingCells;
     public Vector2Int[] TakingCells
     {
@@ -64,13 +74,25 @@ public class TetrisPiece
         position = new Vector3Int(-1, 8, 0);
     }
 
-    public void Move(Vector3Int newPosition)
+    public TetrisPiece ShallowCopy()
     {
-        position = newPosition;
+        TetrisPiece b = new TetrisPiece(tetromino);
+        b.position = position;
+        b._takingCells = _takingCells;
+
+        return b;
     }
 
-    public void RotateShape(Vector2Int[] takingCells)
+    public void Move(Vector3Int translation)
     {
+        position += translation;
+    }
+
+    public void SetRotateStatus(RotateDirection rotationDirection, Vector2Int[] takingCells)
+    {
+        _RotationIndex += (int)rotationDirection;
+        _RotationIndex %= _takingCells.Length;
+        _RotationIndex = _RotationIndex < 0 ? _RotationIndex + _takingCells.Length : _RotationIndex;
         _takingCells = takingCells;
     }
 }

@@ -45,38 +45,38 @@ public class Board : MonoBehaviour
     {
         ClearPieceTile(activePiece);
 
-        Vector3Int newPosition = activePiece.position;
+        Vector3Int translation = Vector3Int.zero;
         if (Input.GetKeyDown(KeyCode.A))
         {
-            newPosition += Vector3Int.left;
+            translation = Vector3Int.left;
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            newPosition += Vector3Int.right;
+            translation = Vector3Int.right;
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
-            newPosition += Vector3Int.down;
+            translation = Vector3Int.down;
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            newPosition = GetHardDropPosition();
+            translation = GetHardDropTranslation();
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
-            RotateActivePiece(RotateDirection.Left);
+            TryToRotateActivePiece(RotateDirection.Left);
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            RotateActivePiece(RotateDirection.Right);
+            TryToRotateActivePiece(RotateDirection.Right);
         }
         else
         {
         }
 
-        if (IsValidPosition(newPosition))
+        if (IsValidPositionOfActivePiece(activePiece.position + translation))
         {
-            activePiece.Move(newPosition);
+            activePiece.Move(translation);
         }
 
         SetPieceTile();
@@ -108,26 +108,26 @@ public class Board : MonoBehaviour
         }
     }
 
-    private Vector3Int GetHardDropPosition()
+    private Vector3Int GetHardDropTranslation()
     {
         Vector3Int newPosition = activePiece.position;
-        while (IsValidPosition(newPosition))
+        Vector3Int translation = Vector3Int.zero;
+        while (IsValidPositionOfActivePiece(newPosition))
         {
             newPosition += Vector3Int.down;
+            translation += Vector3Int.down;
         }
 
-        newPosition += Vector3Int.up;
-
-        return newPosition;
+        return translation + Vector3Int.up;
     }
 
-    public bool IsValidPosition(Vector3Int position)
+    public bool IsValidPosition(Vector3Int position, Vector2Int[] takingCells)
     {
         RectInt offset = OffSet;
 
-        foreach (var takingCells in activePiece.TakingCells)
+        foreach (var takingCell in takingCells)
         {
-            Vector3Int tilePosition = (Vector3Int)takingCells + position;
+            Vector3Int tilePosition = (Vector3Int)takingCell + position;
 
             if (!offset.Contains((Vector2Int)tilePosition))
             {
@@ -143,7 +143,12 @@ public class Board : MonoBehaviour
         return true;
     }
 
-    private void RotateActivePiece(RotateDirection direction)
+    public bool IsValidPositionOfActivePiece(Vector3Int position)
+    {
+        return IsValidPosition(position, activePiece.TakingCells);
+    }
+
+    private void TryToRotateActivePiece(RotateDirection direction)
     {
         float[,] rotateMatrix = new float[,] { { 0, 1 * (int)direction }, { -1 * (int)direction, 0 } };
 
@@ -156,6 +161,29 @@ public class Board : MonoBehaviour
             rotatedCells[i].y = Mathf.RoundToInt((rotateMatrix[1, 0] * curCell[i].x) + (rotateMatrix[1, 1] * curCell[i].y));
         }
 
-        activePiece.RotateShape(rotatedCells);
+        TetrisPiece rotatingPiece = activePiece.ShallowCopy();
+        rotatingPiece.SetRotateStatus(direction, rotatedCells);
+
+        Vector2Int[,] wallKicks = Data.WallKicks[rotatingPiece.tetromino.PieceAlphabet];
+
+        int wallKickIndex = rotatingPiece.RotationIndex * 2;
+        int rotationIndexLength = rotatingPiece.TakingCells.Length;
+        if (direction == RotateDirection.Left)
+        {
+            wallKickIndex--;
+        }
+        wallKickIndex %= rotationIndexLength;
+
+        for (int i = 0; i < rotationIndexLength; i++)
+        {
+            Vector3Int translation = (Vector3Int)wallKicks[wallKickIndex, i];
+            Vector3Int translatedPosition = rotatingPiece.position + translation;
+            if (IsValidPosition(translatedPosition, rotatedCells))
+            {
+                activePiece.SetRotateStatus(direction, rotatedCells);
+                activePiece.Move(translation);
+                return;
+            }
+        }
     }
 }

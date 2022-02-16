@@ -16,6 +16,12 @@ public class Board : MonoBehaviour
     private readonly Vector3Int _SPAWNPOSITION = new Vector3Int(-1, 8, 0);
     private readonly Vector2Int _BOARDSIZE = new Vector2Int(10, 20);
 
+
+    private float stepDelay = 1f;
+    private float lockDelay = 0.5f;
+    private float stepTimeCount;
+    private float lockTimeCount;
+
     private RectInt OffSet
     {
         get
@@ -44,6 +50,9 @@ public class Board : MonoBehaviour
     private void Update()
     {
         ClearPieceTile(activePiece);
+
+        stepTimeCount += Time.deltaTime;
+        lockTimeCount += Time.deltaTime;
 
         Vector3Int translation = Vector3Int.zero;
         if (Input.GetKeyDown(KeyCode.A))
@@ -74,18 +83,45 @@ public class Board : MonoBehaviour
         {
         }
 
+        if (stepTimeCount >= stepDelay)
+        {
+            stepTimeCount = 0f;
+
+            translation = Vector3Int.down;
+
+            if (lockTimeCount >= lockDelay)
+            {
+                LockPiece();
+            }
+        }
+
         if (IsValidPositionOfActivePiece(activePiece.position + translation))
         {
             activePiece.Move(translation);
+            lockTimeCount = 0f;
         }
 
         SetPieceTile();
+    }
+
+    private void StepPiece()
+    {
+
+    }
+
+    private void LockPiece()
+    {
+        SetPieceTile();
+        SpawnActivePiece();
     }
 
     public void SpawnActivePiece()
     {
         int randomIndex = Random.Range(0, tetrominoes.Length);
         activePiece = new TetrisPiece(tetrominoes[randomIndex]);
+
+        stepTimeCount = 0f;
+        lockTimeCount = 0f;
 
         SetPieceTile();
     }

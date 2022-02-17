@@ -13,27 +13,28 @@ public class Board : MonoBehaviour
     [SerializeField]
     private Tetromino[] tetrominoes;
     private TetrisPiece activePiece;
-    private readonly Vector3Int _SPAWNPOSITION = new Vector3Int(-1, 8, 0);
-    private readonly Vector2Int _BOARDSIZE = new Vector2Int(10, 20);
+    private readonly Vector3Int _SPAWNPOSITION;
+    private readonly Vector2Int _BOARDSIZE;
+    private readonly RectInt _OffSet;
 
-
+    [SerializeField]
     private float stepDelay = 1f;
+    [SerializeField]
     private float lockDelay = 0.5f;
     private float stepTimeCount;
     private float lockTimeCount;
 
-    private RectInt OffSet
+    public Board()
     {
-        get
-        {
-            Vector2Int position = new Vector2Int(-_BOARDSIZE.x / 2, -_BOARDSIZE.y / 2);
-            return new RectInt(position, _BOARDSIZE);
-        }
+        _SPAWNPOSITION = new Vector3Int(-1, 8, 0);
+        _BOARDSIZE = new Vector2Int(10, 20);
+        Vector2Int position = new Vector2Int(-_BOARDSIZE.x / 2, -_BOARDSIZE.y / 2);
+        _OffSet = new RectInt(position, _BOARDSIZE);
     }
 
     private void Awake()
     {
-        this.tilemap = GetComponentInChildren<Tilemap>();
+        tilemap = GetComponentInChildren<Tilemap>();
         foreach (var tetromino in tetrominoes)
         {
             //TODO: Have to change this Logic
@@ -167,13 +168,11 @@ public class Board : MonoBehaviour
 
     public bool IsValidPosition(Vector3Int position, Vector2Int[] takingCells)
     {
-        RectInt offset = OffSet;
-
         foreach (var takingCell in takingCells)
         {
             Vector3Int tilePosition = (Vector3Int)takingCell + position;
 
-            if (!offset.Contains((Vector2Int)tilePosition))
+            if (!_OffSet.Contains((Vector2Int)tilePosition))
             {
                 return false;
             }
@@ -234,10 +233,9 @@ public class Board : MonoBehaviour
 
     private void ClearLines()
     {
-        RectInt bounds = OffSet;
-        int row = bounds.yMin;
+        int row = _OffSet.yMin;
 
-        while (row < bounds.yMax)
+        while (row < _OffSet.yMax)
         {
             if (IsLineFull(row))
             {
@@ -252,9 +250,7 @@ public class Board : MonoBehaviour
 
     private bool IsLineFull(int row)
     {
-        RectInt bounds = OffSet;
-
-        for (int col = bounds.xMin; col < bounds.xMax; col++)
+        for (int col = _OffSet.xMin; col < _OffSet.xMax; col++)
         {
             Vector3Int position = new Vector3Int(col, row, 0);
 
@@ -269,21 +265,19 @@ public class Board : MonoBehaviour
 
     private void LineClear(int row)
     {
-        RectInt bounds = OffSet;
-
-        for (int col = bounds.xMin; col < bounds.xMax; col++)
+        for (int col = _OffSet.xMin; col < _OffSet.xMax; col++)
         {
             Vector3Int position = new Vector3Int(col, row, 0);
             tilemap.SetTile(position, null);
         }
 
-        // Shift every row above down one
-        while (row < bounds.yMax)
+        while (row < _OffSet.yMax)
         {
-            for (int col = bounds.xMin; col < bounds.xMax; col++)
+            for (int col = _OffSet.xMin; col < _OffSet.xMax; col++)
             {
-                Vector3Int position = new Vector3Int(col, row + 1, 0);
-                TileBase above = this.tilemap.GetTile(position);
+                Vector3Int position;
+                position = new Vector3Int(col, row + 1, 0);
+                TileBase above = tilemap.GetTile(position);
 
                 position = new Vector3Int(col, row, 0);
                 tilemap.SetTile(position, above);

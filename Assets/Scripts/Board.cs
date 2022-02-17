@@ -76,10 +76,13 @@ public class Board : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.Space))
         {
             HardDropPiece();
+            SetPieceTile();
+            ClearFullLines();
+            SpawnNewPiece();
         }
         else
         {
-            StepPieceAfterStepDelay();
+            TryToStepPieceAfterTimesUp();
         }
 
         SetPieceTile();
@@ -93,7 +96,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void StepPieceAfterStepDelay()
+    private void TryToStepPieceAfterTimesUp()
     {
         if (activePiece.stepTimeCount >= stepDelay)
         {
@@ -106,17 +109,12 @@ public class Board : MonoBehaviour
             {
                 if (activePiece.lockTimeCount >= lockDelay)
                 {
-                    LockPiece();
+                    SetPieceTile();
+                    ClearFullLines();
+                    SpawnNewPiece();
                 }
             }
         }
-    }
-
-    private void LockPiece()
-    {
-        SetPieceTile();
-        ClearLines();
-        SpawnNewPiece();
     }
 
     public void SpawnNewPiece()
@@ -153,9 +151,7 @@ public class Board : MonoBehaviour
             translation += Vector3Int.down;
         }
         translation += Vector3Int.up;
-        ClearPieceTile();
         activePiece.Move(translation);
-        LockPiece();
     }
 
     public bool IsValidPosition(Vector3Int position, Vector2Int[] takingCells)
@@ -222,7 +218,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    private void ClearLines()
+    private void ClearFullLines()
     {
         int row = _OffSet.yMin;
 

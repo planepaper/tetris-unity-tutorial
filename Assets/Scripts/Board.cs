@@ -44,86 +44,92 @@ public class Board : MonoBehaviour
 
     private void Start()
     {
-        SpawnActivePiece();
+        SpawnNewPiece();
+        SetPieceTile();
     }
 
     private void Update()
     {
-        ClearPieceTile(activePiece);
+        ClearPieceTile();
 
         stepTimeCount += Time.deltaTime;
         lockTimeCount += Time.deltaTime;
 
-        Vector3Int translation = Vector3Int.zero;
         if (Input.GetKeyDown(KeyCode.A))
         {
-            translation = Vector3Int.left;
+            TryToMovePiece(Vector3Int.left);
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            translation = Vector3Int.right;
+            TryToMovePiece(Vector3Int.right);
         }
         else if (Input.GetKeyDown(KeyCode.S))
         {
-            translation = Vector3Int.down;
-        }
-        else if (Input.GetKeyDown(KeyCode.Space))
-        {
-            translation = GetHardDropTranslation();
+            TryToMovePiece(Vector3Int.down);
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
-            TryToRotateActivePiece(RotateDirection.Left);
+            TryToRotatePiece(RotateDirection.Left);
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            TryToRotateActivePiece(RotateDirection.Right);
+            TryToRotatePiece(RotateDirection.Right);
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            HardDropPiece();
         }
         else
         {
+            StepPieceAfterStepDelay();
         }
 
-        if (stepTimeCount >= stepDelay)
-        {
-            stepTimeCount = 0f;
+        SetPieceTile();
+    }
 
-            translation = Vector3Int.down;
-
-            if (lockTimeCount >= lockDelay)
-            {
-                LockPiece();
-            }
-        }
-
+    private void TryToMovePiece(Vector3Int translation)
+    {
         if (IsValidPositionOfActivePiece(activePiece.position + translation))
         {
             activePiece.Move(translation);
             lockTimeCount = 0f;
         }
-
-        SetPieceTile();
     }
 
-    private void StepPiece()
+    private void StepPieceAfterStepDelay()
     {
-
+        if (stepTimeCount >= stepDelay)
+        {
+            if (IsValidPositionOfActivePiece(activePiece.position + Vector3Int.down))
+            {
+                activePiece.Move(Vector3Int.down);
+                stepTimeCount = 0f;
+                lockTimeCount = 0f;
+            }
+            else
+            {
+                if (lockTimeCount >= lockDelay)
+                {
+                    LockPiece();
+                }
+            }
+        }
     }
 
     private void LockPiece()
     {
         SetPieceTile();
-        SpawnActivePiece();
+        ClearLines();
+        SpawnNewPiece();
     }
 
-    public void SpawnActivePiece()
+    public void SpawnNewPiece()
     {
         int randomIndex = Random.Range(0, tetrominoes.Length);
         activePiece = new TetrisPiece(tetrominoes[randomIndex]);
 
         stepTimeCount = 0f;
         lockTimeCount = 0f;
-
-        SetPieceTile();
     }
 
     public void SetPieceTile()
@@ -135,7 +141,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    public void ClearPieceTile(TetrisPiece piece)
+    public void ClearPieceTile()
     {
         foreach (var takingCells in activePiece.TakingCells)
         {
@@ -144,7 +150,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    private Vector3Int GetHardDropTranslation()
+    private void HardDropPiece()
     {
         Vector3Int newPosition = activePiece.position;
         Vector3Int translation = Vector3Int.zero;
@@ -153,8 +159,10 @@ public class Board : MonoBehaviour
             newPosition += Vector3Int.down;
             translation += Vector3Int.down;
         }
-
-        return translation + Vector3Int.up;
+        translation += Vector3Int.up;
+        ClearPieceTile();
+        activePiece.Move(translation);
+        LockPiece();
     }
 
     public bool IsValidPosition(Vector3Int position, Vector2Int[] takingCells)
@@ -184,7 +192,7 @@ public class Board : MonoBehaviour
         return IsValidPosition(position, activePiece.TakingCells);
     }
 
-    private void TryToRotateActivePiece(RotateDirection direction)
+    private void TryToRotatePiece(RotateDirection direction)
     {
         float[,] rotateMatrix = new float[,] { { 0, 1 * (int)direction }, { -1 * (int)direction, 0 } };
 
@@ -218,8 +226,70 @@ public class Board : MonoBehaviour
             {
                 activePiece.SetRotateStatus(direction, rotatedCells);
                 activePiece.Move(translation);
+                lockTimeCount = 0f;
                 return;
             }
+        }
+    }
+
+    private void ClearLines()
+    {
+        RectInt bounds = OffSet;
+        int row = bounds.yMin;
+
+        while (row < bounds.yMax)
+        {
+            if (IsLineFull(row))
+            {
+                LineClear(row);
+            }
+            else
+            {
+                row++;
+            }
+        }
+    }
+
+    private bool IsLineFull(int row)
+    {
+        RectInt bounds = OffSet;
+
+        for (int col = bounds.xMin; col < bounds.xMax; col++)
+        {
+            Vector3Int position = new Vector3Int(col, row, 0);
+
+            if (!tilemap.HasTile(position))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void LineClear(int row)
+    {
+        RectInt bounds = OffSet;
+
+        for (int col = bounds.xMin; col < bounds.xMax; col++)
+        {
+            Vector3Int position = new Vector3Int(col, row, 0);
+            tilemap.SetTile(position, null);
+        }
+
+        // Shift every row above down one
+        while (row < bounds.yMax)
+        {
+            for (int col = bounds.xMin; col < bounds.xMax; col++)
+            {
+                Vector3Int position = new Vector3Int(col, row + 1, 0);
+                TileBase above = this.tilemap.GetTile(position);
+
+                position = new Vector3Int(col, row, 0);
+                tilemap.SetTile(position, above);
+            }
+
+            row++;
         }
     }
 }

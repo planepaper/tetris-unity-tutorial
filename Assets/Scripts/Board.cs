@@ -9,6 +9,8 @@ public enum RotateDirection
 
 public class Board : MonoBehaviour
 {
+    [SerializeField]
+    private Tile _ghostTile;
     private Tilemap tilemap;
     [SerializeField]
     private Tetromino[] tetrominoes;
@@ -21,6 +23,8 @@ public class Board : MonoBehaviour
     private float stepDelay = 1f;
     [SerializeField]
     private float lockDelay = 0.5f;
+
+    private Vector3Int ghostPiecePosition;
 
     public Board()
     {
@@ -131,6 +135,13 @@ public class Board : MonoBehaviour
 
     public void SetPieceTile()
     {
+        ghostPiecePosition = GetGhostPiecePosition();
+        foreach (var takingCell in activePiece.TakingCells)
+        {
+            Vector3Int ghostCellPosition = (Vector3Int)takingCell + ghostPiecePosition;
+            tilemap.SetTile(ghostCellPosition, _ghostTile);
+        }
+
         foreach (var takingCell in activePiece.TakingCells)
         {
             Vector3Int tilePosition = (Vector3Int)takingCell + activePiece.position;
@@ -140,24 +151,34 @@ public class Board : MonoBehaviour
 
     public void ClearPieceTile()
     {
-        foreach (var takingCells in activePiece.TakingCells)
+        foreach (var takingCell in activePiece.TakingCells)
         {
-            Vector3Int tilePosition = (Vector3Int)takingCells + activePiece.position;
+            Vector3Int ghostCellPosition = (Vector3Int)takingCell + ghostPiecePosition;
+            tilemap.SetTile(ghostCellPosition, null);
+        }
+
+        foreach (var takingCell in activePiece.TakingCells)
+        {
+            Vector3Int tilePosition = (Vector3Int)takingCell + activePiece.position;
             tilemap.SetTile(tilePosition, null);
         }
     }
 
     private void HardDropPiece()
     {
-        Vector3Int newPosition = activePiece.position;
-        Vector3Int translation = Vector3Int.zero;
-        while (IsValidPosition(newPosition))
+        activePiece.Move(ghostPiecePosition - activePiece.position);
+    }
+
+    private Vector3Int GetGhostPiecePosition()
+    {
+        Vector3Int ghostPosition = activePiece.position;
+        while (IsValidPosition(ghostPosition))
         {
-            newPosition += Vector3Int.down;
-            translation += Vector3Int.down;
+            ghostPosition += Vector3Int.down;
         }
-        translation += Vector3Int.up;
-        activePiece.Move(translation);
+        ghostPosition += Vector3Int.up;
+
+        return ghostPosition;
     }
 
     public bool IsValidPosition(Vector3Int position)

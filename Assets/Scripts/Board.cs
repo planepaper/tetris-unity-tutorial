@@ -43,7 +43,7 @@ public class Board : MonoBehaviour
 
     private void Start()
     {
-        SpawnNewPiece();
+        TryToSpawnNewPiece();
         SetPieceTile();
     }
 
@@ -78,7 +78,7 @@ public class Board : MonoBehaviour
             HardDropPiece();
             SetPieceTile();
             ClearFullLines();
-            SpawnNewPiece();
+            TryToSpawnNewPiece();
         }
         else
         {
@@ -90,7 +90,7 @@ public class Board : MonoBehaviour
 
     private void TryToMovePiece(Vector3Int translation)
     {
-        if (IsValidPositionOfActivePiece(activePiece.position + translation))
+        if (IsValidPosition(activePiece.position + translation))
         {
             activePiece.Move(translation);
         }
@@ -100,7 +100,7 @@ public class Board : MonoBehaviour
     {
         if (activePiece.stepTimeCount >= stepDelay)
         {
-            if (IsValidPositionOfActivePiece(activePiece.position + Vector3Int.down))
+            if (IsValidPosition(activePiece.position + Vector3Int.down))
             {
                 activePiece.Move(Vector3Int.down);
                 activePiece.InitializeStepCount();
@@ -111,16 +111,22 @@ public class Board : MonoBehaviour
                 {
                     SetPieceTile();
                     ClearFullLines();
-                    SpawnNewPiece();
+                    TryToSpawnNewPiece();
                 }
             }
         }
     }
 
-    public void SpawnNewPiece()
+    public void TryToSpawnNewPiece()
     {
         int randomIndex = Random.Range(0, tetrominoes.Length);
         activePiece = new TetrisPiece(tetrominoes[randomIndex]);
+
+        //GameOver
+        if (!IsValidPosition(activePiece.position))
+        {
+            tilemap.ClearAllTiles();
+        }
     }
 
     public void SetPieceTile()
@@ -145,13 +151,18 @@ public class Board : MonoBehaviour
     {
         Vector3Int newPosition = activePiece.position;
         Vector3Int translation = Vector3Int.zero;
-        while (IsValidPositionOfActivePiece(newPosition))
+        while (IsValidPosition(newPosition))
         {
             newPosition += Vector3Int.down;
             translation += Vector3Int.down;
         }
         translation += Vector3Int.up;
         activePiece.Move(translation);
+    }
+
+    public bool IsValidPosition(Vector3Int position)
+    {
+        return IsValidPosition(position, activePiece.TakingCells);
     }
 
     public bool IsValidPosition(Vector3Int position, Vector2Int[] takingCells)
@@ -172,11 +183,6 @@ public class Board : MonoBehaviour
         }
 
         return true;
-    }
-
-    public bool IsValidPositionOfActivePiece(Vector3Int position)
-    {
-        return IsValidPosition(position, activePiece.TakingCells);
     }
 
     private void TryToRotatePiece(RotateDirection direction)

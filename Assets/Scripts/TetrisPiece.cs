@@ -66,12 +66,16 @@ public class TetrisPiece
             return temp;
         }
     }
+    public float stepTimeCount { get; private set; }
+    public float lockTimeCount { get; private set; }
 
     public TetrisPiece(Tetromino tetromino)
     {
         this.tetromino = tetromino;
         _takingCells = tetromino.ShapeCells;
         position = new Vector3Int(-1, 8, 0);
+        stepTimeCount = 0f;
+        lockTimeCount = 0f;
     }
 
     public TetrisPiece ShallowCopy()
@@ -86,6 +90,7 @@ public class TetrisPiece
     public void Move(Vector3Int translation)
     {
         position += translation;
+        lockTimeCount = 0f;
     }
 
     public void SetRotateStatus(RotateDirection rotationDirection, Vector2Int[] takingCells)
@@ -94,5 +99,16 @@ public class TetrisPiece
         _RotationIndex %= _takingCells.Length;
         _RotationIndex = _RotationIndex < 0 ? _RotationIndex + _takingCells.Length : _RotationIndex;
         _takingCells = takingCells;
+    }
+
+    public void CountTime()
+    {
+        stepTimeCount += Time.deltaTime;
+        lockTimeCount += Time.deltaTime;
+    }
+
+    public void InitializeStepCount()
+    {
+        stepTimeCount = 0f;
     }
 }

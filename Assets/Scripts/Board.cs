@@ -21,8 +21,6 @@ public class Board : MonoBehaviour
     private float stepDelay = 1f;
     [SerializeField]
     private float lockDelay = 0.5f;
-    private float stepTimeCount;
-    private float lockTimeCount;
 
     public Board()
     {
@@ -53,8 +51,7 @@ public class Board : MonoBehaviour
     {
         ClearPieceTile();
 
-        stepTimeCount += Time.deltaTime;
-        lockTimeCount += Time.deltaTime;
+        activePiece.CountTime();
 
         if (Input.GetKeyDown(KeyCode.A))
         {
@@ -93,23 +90,21 @@ public class Board : MonoBehaviour
         if (IsValidPositionOfActivePiece(activePiece.position + translation))
         {
             activePiece.Move(translation);
-            lockTimeCount = 0f;
         }
     }
 
     private void StepPieceAfterStepDelay()
     {
-        if (stepTimeCount >= stepDelay)
+        if (activePiece.stepTimeCount >= stepDelay)
         {
             if (IsValidPositionOfActivePiece(activePiece.position + Vector3Int.down))
             {
                 activePiece.Move(Vector3Int.down);
-                stepTimeCount = 0f;
-                lockTimeCount = 0f;
+                activePiece.InitializeStepCount();
             }
             else
             {
-                if (lockTimeCount >= lockDelay)
+                if (activePiece.lockTimeCount >= lockDelay)
                 {
                     LockPiece();
                 }
@@ -128,9 +123,6 @@ public class Board : MonoBehaviour
     {
         int randomIndex = Random.Range(0, tetrominoes.Length);
         activePiece = new TetrisPiece(tetrominoes[randomIndex]);
-
-        stepTimeCount = 0f;
-        lockTimeCount = 0f;
     }
 
     public void SetPieceTile()
@@ -225,7 +217,6 @@ public class Board : MonoBehaviour
             {
                 activePiece.SetRotateStatus(direction, rotatedCells);
                 activePiece.Move(translation);
-                lockTimeCount = 0f;
                 return;
             }
         }
